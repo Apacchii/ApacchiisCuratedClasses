@@ -1,0 +1,6 @@
+displayName = Apacchii's Curated Classes
+author = Apacchii & Community
+version = 1.0.2
+includeSource = true
+homepage = https://discord.gg/TyTYCxE
+modReferences = ApacchiisClassesMod
