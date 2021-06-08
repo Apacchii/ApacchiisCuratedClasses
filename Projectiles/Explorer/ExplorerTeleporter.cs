@@ -46,7 +46,7 @@ namespace ApacchiisCuratedClasses.Projectiles.Explorer
                 // I make projectiles scale with Ability Duration by increasing its base timeLeft by abilityDuration only when the projectile is spawned
                 if (!flag) // So, if flag is false
                 {
-                    projectile.timeLeft = (int)(60 * 10 * player.GetModPlayer<ACCPlayer>().abilityDuration); // Scale the projectile's timeLeft with the player's abilityDuration
+                    projectile.timeLeft = (int)(60 * 10 * player.GetModPlayer<ApacchiisClassesMod.MyPlayer>().abilityDuration); // Scale the projectile's timeLeft with the player's abilityDuration
                     flag = true; // Set flag to true so it does not repeat this process ever again until the projectile dies
                 }
 

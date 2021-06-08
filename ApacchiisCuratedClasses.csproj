@@ -11,6 +11,15 @@
     <Exec Command="&quot;$(tMLBuildServerPath)&quot; -build $(ProjectDir) -eac $(TargetPath) -define &quot;$(DefineConstants)&quot; -unsafe $(AllowUnsafeBlocks)" />
   </Target>
   <ItemGroup>
+    <None Remove="Classes\Defender\DefenderLv1.png" />
+    <None Remove="Classes\Defender\DefenderLv2.png" />
+    <None Remove="Classes\Defender\DefenderLv3.png" />
+    <None Remove="Classes\Defender\DefenderLv4.png" />
+    <None Remove="Classes\Defender\DefenderLv5.png" />
+    <None Remove="Classes\Defender\DefenderLv6.png" />
+    <None Remove="Classes\Defender\DefenderLv7.png" />
+    <None Remove="Classes\Defender\DefenderLv8.png" />
+    <None Remove="Classes\Defender\DefenderUltimate.png" />
     <None Remove="Classes\Explorer\ExplorerLv1.png" />
     <None Remove="Classes\Explorer\ExplorerLv2.png" />
     <None Remove="Classes\Explorer\ExplorerLv3.png" />
@@ -20,7 +29,21 @@
     <None Remove="Classes\Explorer\ExplorerLv7.png" />
     <None Remove="Classes\Explorer\ExplorerLv8.png" />
     <None Remove="Classes\Explorer\ExplorerUltimate.png" />
+    <None Remove="Classes\Spellblade\SpellbladeLv1.png" />
+    <None Remove="Classes\Spellblade\SpellbladeLv2.png" />
+    <None Remove="Classes\Spellblade\SpellbladeLv3.png" />
+    <None Remove="Classes\Spellblade\SpellbladeLv4.png" />
+    <None Remove="Classes\Spellblade\SpellbladeLv5.png" />
+    <None Remove="Classes\Spellblade\SpellbladeLv6.png" />
+    <None Remove="Classes\Spellblade\SpellbladeLv7.png" />
+    <None Remove="Classes\Spellblade\SpellbladeLv8.png" />
+    <None Remove="Classes\Spellblade\SpellbladeUltimate.png" />
+    <None Remove="Projectiles\Defender\SentryDetonate.png" />
     <None Remove="Projectiles\Explorer\ExplorerTeleporter.png" />
+    <None Remove="Projectiles\Spellblade\Blade.png" />
+    <None Remove="Projectiles\Spellblade\Blade_Old.png" />
+    <None Remove="Projectiles\Spellblade\ShokkZone.png" />
+    <None Remove="Projectiles\Spellblade\ShokkZone_Old.png" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="tModLoader.CodeAssist" Version="0.1.*" />
@@ -28,6 +51,9 @@
   <ItemGroup>
     <Reference Include="ApacchiisClassesMod">
       <HintPath>..\..\Mod Reader\ApacchiisClassesMod\ApacchiisClassesMod.FNA.dll</HintPath>
+    </Reference>
+    <Reference Include="ExpandedSentries">
+      <HintPath>..\..\Mod Reader\ACC Dependencies\ExpandedSentries.FNA.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>
