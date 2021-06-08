@@ -7,16 +7,26 @@ namespace ApacchiisCuratedClasses.Classes.Defender
 	public class DefenderLv2 : ModItem
 	{
         Player player = Main.player[Main.myPlayer];
+        Mod es = ModLoader.GetMod("ExpandedSentries");
 
         public override void SetStaticDefaults()
         {
-            DisplayName.SetDefault("Class: Defender Lv.2");
-            Tooltip.SetDefault("+6% Sentry Damage\n" +
-                               "+1 Max Sentries\n" +
-                               "+10% Sentry Range\n" +
-                               "+5% Sentry Speed\n" +
-                               "[Detonate Sentries] Base Damage: 150\n" +
-                               "(By: TheLoneGamer)");
+            if (es != null)
+            {
+                DisplayName.SetDefault("Class: Defender Lv.2");
+                Tooltip.SetDefault("+6% Sentry Damage\n" +
+                                   "+1 Max Sentries\n" +
+                                   "+10% Sentry Range\n" +
+                                   "+5% Sentry Speed\n" +
+                                   "[Detonate Sentries] Base Damage: 150\n" +
+                                   "(By: TheLoneGamer)");
+            }
+            else
+            {
+                DisplayName.SetDefault("Class: Defender Lv.1");
+                Tooltip.SetDefault("[c/d33838:This class required the mod 'Expanded Sentries' to work]\n" +
+                                   "[c/d33838:You can download it through the Mod Browser]");
+            }
         }
 
 		public override void SetDefaults()
@@ -40,14 +50,17 @@ namespace ApacchiisCuratedClasses.Classes.Defender
 		public override void UpdateAccessory (Player player, bool hideVisual)
 		{
             ACCPlayer accPlayer = Main.player[player.whoAmI].GetModPlayer<ACCPlayer>();
-            player.GetModPlayer<ApacchiisClassesMod.MyPlayer>().hasEquippedClass = true;
-            accPlayer.hasDefender = true;
+            if (es != null)
+            {
+                player.GetModPlayer<ApacchiisClassesMod.MyPlayer>().hasEquippedClass = true;
+                accPlayer.hasDefender = true;
 
-            player.GetModPlayer<ExpandedSentries.ESPlayer>().sentryDamage += 0.06f;
-            player.GetModPlayer<ExpandedSentries.ESPlayer>().sentryRange += 0.1f;
-            player.GetModPlayer<ExpandedSentries.ESPlayer>().sentrySpeed += 0.05f;
-            player.maxTurrets++;
-            accPlayer.defenderAbility1Damage = 150;
+                player.GetModPlayer<ExpandedSentries.ESPlayer>().sentryDamage += 0.06f;
+                player.GetModPlayer<ExpandedSentries.ESPlayer>().sentryRange += 0.1f;
+                player.GetModPlayer<ExpandedSentries.ESPlayer>().sentrySpeed += 0.05f;
+                player.maxTurrets++;
+                accPlayer.defenderAbility1Damage = 150;
+            }
         }
 
         public override bool CanEquipAccessory(Player player, int slot)

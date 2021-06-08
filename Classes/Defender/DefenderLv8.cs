@@ -7,21 +7,31 @@ namespace ApacchiisCuratedClasses.Classes.Defender
 	public class DefenderLv8 : ModItem
 	{
         Player player = Main.player[Main.myPlayer];
+        Mod es = ModLoader.GetMod("ExpandedSentries");
 
         public override void SetStaticDefaults()
         {
-            DisplayName.SetDefault("Class: Defender Lv.8");
-            Tooltip.SetDefault("+24% Sentry Damage\n" +
-                               "+3 Max Sentries\n" +
-                               "+40% Sentry Range\n" +
-                               "+20% Sentry Speed\n" +
-                               "[Detonate Sentries] Base Damage: 5000\n" +
-                               "[c/af7A6:[Path 1][c/af7A6:]]\n" +
-                               "+1 Max Sentries\n" +
-                               "[Detonate Sentries] Deals 20% more damage\n" +
-                               "[Detonate Sentries] Base cooldown reduced from 15 to 10 seconds\n" +
-                               "[Sentry Defense] Extra passive defense after using [Detonate Sentries] increased from 2 to 3\n" +
-                               "(By: TheLoneGamer)");
+            if (es != null)
+            {
+                DisplayName.SetDefault("Class: Defender Lv.8");
+                Tooltip.SetDefault("+24% Sentry Damage\n" +
+                                   "+3 Max Sentries\n" +
+                                   "+40% Sentry Range\n" +
+                                   "+20% Sentry Speed\n" +
+                                   "[Detonate Sentries] Base Damage: 5000\n" +
+                                   "[c/af7A6:[Path 1][c/af7A6:]]\n" +
+                                   "+1 Max Sentries\n" +
+                                   "[Detonate Sentries] Deals 20% more damage\n" +
+                                   "[Detonate Sentries] Base cooldown reduced from 15 to 10 seconds\n" +
+                                   "[Sentry Defense] Extra passive defense after using [Detonate Sentries] increased from 2 to 3\n" +
+                                   "(By: TheLoneGamer)");
+            }
+            else
+            {
+                DisplayName.SetDefault("Class: Defender Lv.1");
+                Tooltip.SetDefault("[c/d33838:This class required the mod 'Expanded Sentries' to work]\n" +
+                                   "[c/d33838:You can download it through the Mod Browser]");
+            }
         }
 
 		public override void SetDefaults()
@@ -45,16 +55,19 @@ namespace ApacchiisCuratedClasses.Classes.Defender
 		public override void UpdateAccessory (Player player, bool hideVisual)
 		{
             ACCPlayer accPlayer = Main.player[player.whoAmI].GetModPlayer<ACCPlayer>();
-            player.GetModPlayer<ApacchiisClassesMod.MyPlayer>().hasEquippedClass = true;
-            accPlayer.hasDefender = true;
-            accPlayer.hasClassPath1 = true;
+            if (es != null)
+            {
+                player.GetModPlayer<ApacchiisClassesMod.MyPlayer>().hasEquippedClass = true;
+                accPlayer.hasDefender = true;
+                accPlayer.hasClassPath1 = true;
 
-            player.GetModPlayer<ExpandedSentries.ESPlayer>().sentryDamage += 0.24f;
-            player.GetModPlayer<ExpandedSentries.ESPlayer>().sentryRange += 0.4f;
-            player.GetModPlayer<ExpandedSentries.ESPlayer>().sentrySpeed += 0.2f;
-            player.maxTurrets += 4;
-            accPlayer.defenderAbility1Damage = 5000;
-			player.GetModPlayer<ApacchiisClassesMod.MyPlayer>().abilityDamage += 0.2f;
+                player.GetModPlayer<ExpandedSentries.ESPlayer>().sentryDamage += 0.24f;
+                player.GetModPlayer<ExpandedSentries.ESPlayer>().sentryRange += 0.4f;
+                player.GetModPlayer<ExpandedSentries.ESPlayer>().sentrySpeed += 0.2f;
+                player.maxTurrets += 4;
+                accPlayer.defenderAbility1Damage = 5000;
+                player.GetModPlayer<ApacchiisClassesMod.MyPlayer>().abilityDamage += 0.2f;
+            }
         }
 
         public override bool CanEquipAccessory(Player player, int slot)
