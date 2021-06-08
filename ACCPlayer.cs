@@ -9,6 +9,9 @@ namespace ApacchiisCuratedClasses
 {
 	public class ACCPlayer : ModPlayer
 	{
+        //For weak referenced cross-mod content 
+        Mod ExpSentriesMod = ModLoader.GetMod("ExpandedSentries");
+
         // Main mod Misc. Variables
         public bool hasEquipedClass;
         public bool hasClassPath1;
@@ -67,14 +70,19 @@ namespace ApacchiisCuratedClasses
                 explorerPassiveTimer++; // Increase it 1 by 1 each tick
             #endregion
 
+
             #region Defender Ability 2 Timers & Effects
-            if (defenderPoweredTimer > 0)
+            if (ExpSentriesMod != null)
             {
-                defenderPoweredTimer--;
-                player.GetModPlayer<ExpandedSentries.ESPlayer>().sentryRange += 1f;
-                player.GetModPlayer<ExpandedSentries.ESPlayer>().sentrySpeed += 0.5f;
+                if (defenderPoweredTimer > 0)
+                {
+                    defenderPoweredTimer--;
+                    player.GetModPlayer<ExpandedSentries.ESPlayer>().sentryRange += 1f;
+                    player.GetModPlayer<ExpandedSentries.ESPlayer>().sentrySpeed += 0.5f;
+                }
             }
             #endregion
+
             base.PreUpdateBuffs();
         }
 
@@ -148,31 +156,34 @@ namespace ApacchiisCuratedClasses
         public override void PostUpdate()
         {
             #region Defender Passive
-            //Passive to increase defense either based on active turrets or how many turrets were detonated using A1
-            if (hasDefender)
+            if (ExpSentriesMod != null)
             {
-                if (defenderPassiveTimer > 0) //Scale only with this stat if A1 was used recently
+                //Passive to increase defense either based on active turrets or how many turrets were detonated using A1
+                if (hasDefender)
                 {
-                    defenderPassiveTimer--;
-                    player.statDefense += defenderPassiveBoost;
-                    if (defenderPassiveTimer <= 0)
+                    if (defenderPassiveTimer > 0) //Scale only with this stat if A1 was used recently
                     {
-                        defenderPassiveBoost = 0;
-                    }
-                }
-                else //Otherwise, scale with active sentries
-                {
-                    int turretCount = 0;
-                    for (int j = 0; j < 1000; j++)
-                    {
-                        if (Main.projectile[j].active && Main.projectile[j].owner == player.whoAmI && Main.projectile[j].sentry)
+                        defenderPassiveTimer--;
+                        player.statDefense += defenderPassiveBoost;
+                        if (defenderPassiveTimer <= 0)
                         {
-                            turretCount++;
+                            defenderPassiveBoost = 0;
                         }
                     }
-                    if (turretCount > 0)
+                    else //Otherwise, scale with active sentries
                     {
-                        player.statDefense += turretCount;
+                        int turretCount = 0;
+                        for (int j = 0; j < 1000; j++)
+                        {
+                            if (Main.projectile[j].active && Main.projectile[j].owner == player.whoAmI && Main.projectile[j].sentry)
+                            {
+                                turretCount++;
+                            }
+                        }
+                        if (turretCount > 0)
+                        {
+                            player.statDefense += turretCount;
+                        }
                     }
                 }
             }
@@ -315,37 +326,40 @@ namespace ApacchiisCuratedClasses
                 #endregion
 
                 #region Defender
-                if (hasDefender)
+                if (ExpSentriesMod != null)
                 {
-                    int turretCount = 0; //Count how many sentries the player has active to use for later
-                    for (int i = 0; i < 1000; i++)
+                    if (hasDefender)
                     {
-                        if (Main.projectile[i].active && (ProjectileID.Sets.IsADD2Turret[Main.projectile[i].type] || Main.projectile[i].sentry)
-                        && Main.projectile[i].owner == player.whoAmI)
+                        int turretCount = 0; //Count how many sentries the player has active to use for later
+                        for (int i = 0; i < 1000; i++)
                         {
-                            Projectile.NewProjectile(Main.projectile[i].Center, Vector2.Zero, mod.ProjectileType("SentryDetonate"), (int)(defenderAbility1Damage * acmPlayer.abilityDamage), 8, player.whoAmI);
-                            Main.projectile[i].Kill();
-                            turretCount++;
+                            if (Main.projectile[i].active && (ProjectileID.Sets.IsADD2Turret[Main.projectile[i].type] || Main.projectile[i].sentry)
+                            && Main.projectile[i].owner == player.whoAmI)
+                            {
+                                Projectile.NewProjectile(Main.projectile[i].Center, Vector2.Zero, mod.ProjectileType("SentryDetonate"), (int)(defenderAbility1Damage * acmPlayer.abilityDamage), 8, player.whoAmI);
+                                Main.projectile[i].Kill();
+                                turretCount++;
+                            }
                         }
-                    }
-                    if (turretCount > 0) //Make sure to find any active sentries before triggering cooldown
-                    {
-                        if (hasClassPath1)
+                        if (turretCount > 0) //Make sure to find any active sentries before triggering cooldown
                         {
-                            player.AddBuff(ModContent.BuffType<ApacchiisClassesMod.Buffs.ActiveCooldown1>(), (int)(acmPlayer.baseCooldown * acmPlayer.cooldownReduction * 10));
-                            defenderPassiveBoost = turretCount * 3;
+                            if (hasClassPath1)
+                            {
+                                player.AddBuff(ModContent.BuffType<ApacchiisClassesMod.Buffs.ActiveCooldown1>(), (int)(acmPlayer.baseCooldown * acmPlayer.cooldownReduction * 10));
+                                defenderPassiveBoost = turretCount * 3;
+                            }
+                            else
+                            {
+                                player.AddBuff(ModContent.BuffType<ApacchiisClassesMod.Buffs.ActiveCooldown1>(), (int)(acmPlayer.baseCooldown * acmPlayer.cooldownReduction * 15));
+                                defenderPassiveBoost = turretCount * 2;
+                            }
+                            defenderPassiveTimer = (int)(600 * acmPlayer.abilityDuration);
+                            Main.PlaySound(SoundID.Mech);
                         }
-                        else
+                        else //Otherwise, the ability effectively fails to use and can intantly used again
                         {
-                            player.AddBuff(ModContent.BuffType<ApacchiisClassesMod.Buffs.ActiveCooldown1>(), (int)(acmPlayer.baseCooldown * acmPlayer.cooldownReduction * 15));
-                            defenderPassiveBoost = turretCount * 2;
+                            Main.PlaySound(SoundID.MenuClose);
                         }
-                        defenderPassiveTimer = (int)(600 * acmPlayer.abilityDuration);
-                        Main.PlaySound(SoundID.Mech);
-                    }
-                    else //Otherwise, the ability effectively fails to use and can intantly used again
-                    {
-                        Main.PlaySound(SoundID.MenuClose);
                     }
                 }
                 #endregion
@@ -392,33 +406,36 @@ namespace ApacchiisCuratedClasses
                 #endregion
 
                 #region Defender
-                if (hasDefender)
+                if (ExpSentriesMod != null)
                 {
-                    bool hasSentry = false; //Like turretCount, but this time, check if the player has any active sentries, rather than get the exact amount
-                    for (int i = 0; i < 1000; i++)
+                    if (hasDefender)
                     {
-                        if (Main.projectile[i].active && Main.projectile[i].sentry
-                        && Main.projectile[i].owner == player.whoAmI)
+                        bool hasSentry = false; //Like turretCount, but this time, check if the player has any active sentries, rather than get the exact amount
+                        for (int i = 0; i < 1000; i++)
                         {
-                            hasSentry = true;
-                            break;
+                            if (Main.projectile[i].active && Main.projectile[i].sentry
+                            && Main.projectile[i].owner == player.whoAmI)
+                            {
+                                hasSentry = true;
+                                break;
+                            }
                         }
-                    }
-                    if (hasSentry) //Use the ability as intended
-                    {
-                        if (hasClassPath2)
-                            player.AddBuff(ModContent.BuffType<ApacchiisClassesMod.Buffs.ActiveCooldown2>(), (int)(acmPlayer.baseCooldown * acmPlayer.cooldownReduction * 50));
-                        else
-                            player.AddBuff(ModContent.BuffType<ApacchiisClassesMod.Buffs.ActiveCooldown2>(), (int)(acmPlayer.baseCooldown * acmPlayer.cooldownReduction * 60));
-                        if (hasClassPath2)
-                            defenderPoweredTimer = (int)(900 * acmPlayer.abilityDuration);
-                        else
-                            defenderPoweredTimer = (int)(600 * acmPlayer.abilityDuration);
-                        Main.PlaySound(SoundID.Item37);
-                    }
-                    else //Failsafe otherwise
-                    {
-                        Main.PlaySound(SoundID.MenuClose);
+                        if (hasSentry) //Use the ability as intended
+                        {
+                            if (hasClassPath2)
+                                player.AddBuff(ModContent.BuffType<ApacchiisClassesMod.Buffs.ActiveCooldown2>(), (int)(acmPlayer.baseCooldown * acmPlayer.cooldownReduction * 50));
+                            else
+                                player.AddBuff(ModContent.BuffType<ApacchiisClassesMod.Buffs.ActiveCooldown2>(), (int)(acmPlayer.baseCooldown * acmPlayer.cooldownReduction * 60));
+                            if (hasClassPath2)
+                                defenderPoweredTimer = (int)(900 * acmPlayer.abilityDuration);
+                            else
+                                defenderPoweredTimer = (int)(600 * acmPlayer.abilityDuration);
+                            Main.PlaySound(SoundID.Item37);
+                        }
+                        else //Failsafe otherwise
+                        {
+                            Main.PlaySound(SoundID.MenuClose);
+                        }
                     }
                 }
                 #endregion
