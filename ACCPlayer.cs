@@ -4,6 +4,8 @@ using Terraria.ModLoader;
 using Terraria.GameInput;
 using ApacchiisClassesMod;
 using Microsoft.Xna.Framework;
+using System;
+using System.Reflection;
 
 namespace ApacchiisCuratedClasses
 {
@@ -70,15 +72,26 @@ namespace ApacchiisCuratedClasses
                 explorerPassiveTimer++; // Increase it 1 by 1 each tick
             #endregion
 
-
             #region Defender Ability 2 Timers & Effects
             if (ExpSentriesMod != null)
             {
                 if (defenderPoweredTimer > 0)
                 {
                     defenderPoweredTimer--;
-                    player.GetModPlayer<ExpandedSentries.ESPlayer>().sentryRange += 1f;
-                    player.GetModPlayer<ExpandedSentries.ESPlayer>().sentrySpeed += 0.5f;
+
+                    //Reflection for cross-mod compatability without hard references
+                    ModPlayer esPlayer = player.GetModPlayer(ExpSentriesMod, "ESPlayer");
+                    Type esPlayerType = esPlayer.GetType();
+
+                    // Sentry Range
+                    FieldInfo sentryRange = esPlayerType.GetField("sentryRange", BindingFlags.Instance | BindingFlags.Public);
+                    float oldSentryRange = (float)sentryRange.GetValue(esPlayer);
+                    sentryRange.SetValue(esPlayer, oldSentryRange + 1f);
+
+                    // Sentry Speed
+                    FieldInfo sentrySpeed = esPlayerType.GetField("sentrySpeed", BindingFlags.Instance | BindingFlags.Public);
+                    float oldSentrySpeed = (float)sentrySpeed.GetValue(esPlayer);
+                    sentrySpeed.SetValue(esPlayer, oldSentrySpeed + .5f);
                 }
             }
             #endregion
@@ -166,9 +179,7 @@ namespace ApacchiisCuratedClasses
                         defenderPassiveTimer--;
                         player.statDefense += defenderPassiveBoost;
                         if (defenderPassiveTimer <= 0)
-                        {
                             defenderPassiveBoost = 0;
-                        }
                     }
                     else //Otherwise, scale with active sentries
                     {
@@ -176,14 +187,11 @@ namespace ApacchiisCuratedClasses
                         for (int j = 0; j < 1000; j++)
                         {
                             if (Main.projectile[j].active && Main.projectile[j].owner == player.whoAmI && Main.projectile[j].sentry)
-                            {
                                 turretCount++;
-                            }
                         }
+
                         if (turretCount > 0)
-                        {
                             player.statDefense += turretCount;
-                        }
                     }
                 }
             }

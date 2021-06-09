@@ -1,3 +1,5 @@
+using System;
+using System.Reflection;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -7,11 +9,11 @@ namespace ApacchiisCuratedClasses.Classes.Defender
 	public class DefenderLv3 : ModItem
 	{
         Player player = Main.player[Main.myPlayer];
-        Mod es = ModLoader.GetMod("ExpandedSentries");
+        Mod ExpSentriesMod = ModLoader.GetMod("ExpandedSentries");
 
         public override void SetStaticDefaults()
         {
-            if (es != null)
+            if (ExpSentriesMod != null)
             {
                 DisplayName.SetDefault("Class: Defender Lv.3");
                 Tooltip.SetDefault("+9% Sentry Damage\n" +
@@ -50,14 +52,30 @@ namespace ApacchiisCuratedClasses.Classes.Defender
 		public override void UpdateAccessory (Player player, bool hideVisual)
 		{
             ACCPlayer accPlayer = Main.player[player.whoAmI].GetModPlayer<ACCPlayer>();
-            if (es != null)
+            if (ExpSentriesMod != null)
             {
                 player.GetModPlayer<ApacchiisClassesMod.MyPlayer>().hasEquippedClass = true;
                 accPlayer.hasDefender = true;
 
-                player.GetModPlayer<ExpandedSentries.ESPlayer>().sentryDamage += 0.09f;
-                player.GetModPlayer<ExpandedSentries.ESPlayer>().sentryRange += 0.15f;
-                player.GetModPlayer<ExpandedSentries.ESPlayer>().sentrySpeed += 0.075f;
+                //Reflection for cross-mod compatability without hard references
+                ModPlayer esPlayer = player.GetModPlayer(ExpSentriesMod, "ESPlayer");
+                Type esPlayerType = esPlayer.GetType();
+
+                // Sentry Damage
+                FieldInfo sentryDamage = esPlayerType.GetField("sentryDamage", BindingFlags.Instance | BindingFlags.Public);
+                float oldSentryDamage = (float)sentryDamage.GetValue(esPlayer);
+                sentryDamage.SetValue(esPlayer, oldSentryDamage + .09f);
+
+                // Sentry Range
+                FieldInfo sentryRange = esPlayerType.GetField("sentryRange", BindingFlags.Instance | BindingFlags.Public);
+                float oldSentryRange = (float)sentryRange.GetValue(esPlayer);
+                sentryRange.SetValue(esPlayer, oldSentryRange + .15f);
+
+                // Sentry Speed
+                FieldInfo sentrySpeed = esPlayerType.GetField("sentrySpeed", BindingFlags.Instance | BindingFlags.Public);
+                float oldSentrySpeed = (float)sentrySpeed.GetValue(esPlayer);
+                sentrySpeed.SetValue(esPlayer, oldSentrySpeed + .075f);
+
                 player.maxTurrets += 2;
                 accPlayer.defenderAbility1Damage = 250;
             }

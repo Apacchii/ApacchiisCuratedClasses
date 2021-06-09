@@ -52,8 +52,5 @@
     <Reference Include="ApacchiisClassesMod">
       <HintPath>..\..\Mod Reader\ApacchiisClassesMod\ApacchiisClassesMod.FNA.dll</HintPath>
     </Reference>
-    <Reference Include="ExpandedSentries">
-      <HintPath>..\..\Mod Reader\ACC Dependencies\ExpandedSentries.FNA.dll</HintPath>
-    </Reference>
   </ItemGroup>
 </Project>
