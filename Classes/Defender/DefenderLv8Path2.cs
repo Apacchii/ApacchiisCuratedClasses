@@ -86,7 +86,7 @@ namespace ApacchiisCuratedClasses.Classes.Defender
                 // Sentry Crit
                 FieldInfo sentryCrit = esPlayerType.GetField("sentryCrit", BindingFlags.Instance | BindingFlags.Public);
                 int oldSentryCrit = (int)sentryCrit.GetValue(esPlayer);
-                sentryCrit.SetValue(esPlayer, oldSentryCrit + 5f);
+                sentryCrit.SetValue(esPlayer, oldSentryCrit + 5);
 
                 player.maxTurrets += 3;
                 accPlayer.defenderAbility1Damage = 5000;

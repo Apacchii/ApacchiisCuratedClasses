@@ -10,14 +10,14 @@ namespace ApacchiisCuratedClasses.Classes.Spellblade
         {
             DisplayName.SetDefault("Class: Spellblade Lv.8");
             Tooltip.SetDefault("[c/3485c5:[Holding a magic weaponc/3485c5:]]\n" +
-                               "[c/3485c5:+11.2% Magic Damage\n" +
-                               "[c/3485c5:-9.8% Mana Costs\n" +
-                               "[c/3485c5:+32 Max Mana\n" +
+                               "[c/3485c5:+11.2% Magic Damage]\n" +
+                               "[c/3485c5:-9.8% Mana Costs]\n" +
+                               "[c/3485c5:+32 Max Mana]\n" +
                                "[c/d33838:[Holding a melee weapon[c/d33838:]]\n" +
-                               "[c/d33838:+14.4% Magic Damage\n" +
-                               "[c/d33838:+8% Melee Crit Chance\n" +
-                               "[c/d33838:Melee Damage is also increased by Magic Damage\n" +
-                               "[c/d33838:Defense is increased by 40% of magic crit\n" +
+                               "[c/d33838:+14.4% Magic Damage]\n" +
+                               "[c/d33838:+8% Melee Crit Chance]\n" +
+                               "[c/d33838:Melee Damage is also increased by Magic Damage]\n" +
+                               "[c/d33838:Defense is increased by 40% of magic crit]\n" +
                                "-----------\n" +
                                "[Magic Blade] Base Damage: 40\n" +
                                "[Magic Blade] Base Mana Cost: 25\n" +

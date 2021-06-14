@@ -21,8 +21,8 @@ namespace ApacchiisCuratedClasses
 
         //Explorer
         public bool hasExplorer;
-        int explorerDodgeTimer = 0;
         bool explorerDodgeHeal = false;
+        int explorerDodgeTimer = 0;
         int explorerPassiveTimer = 180;
         public bool explorerThrownTeleporter = false;
         public Vector2 explorerTeleporterPos; //This variable is the one updated by the "ExplorerTeleporter" projectile
@@ -160,6 +160,8 @@ namespace ApacchiisCuratedClasses
                     if (player.HeldItem.melee)
                         player.HeldItem.mana = 0;
                 }
+
+                
             }
             #endregion
             base.PostUpdateEquips();
@@ -269,7 +271,7 @@ namespace ApacchiisCuratedClasses
         {
             #region Spellblade
             if (hasSpellblade && spellbladeToggle && item.melee)
-                item.mana = 10;
+                item.mana = magicBladeBaseCost;
             #endregion
             base.ModifyManaCost(item, ref reduce, ref mult);
         }
@@ -278,11 +280,9 @@ namespace ApacchiisCuratedClasses
         {
             var acmPlayer = player.GetModPlayer<ApacchiisClassesMod.MyPlayer>();
 
-            /* <-NOTES->
-             * - acmPlayer.abilityDamage is how Ability Power is named internally, its not just for damage, it affects everything.
-             * 
-             * - acmPlayer.baseCooldown is 60 ticks by default but can be changed via Mod Configs.
-            */
+            /* <NOTES>
+             * - acmPlayer.abilityDamage is how Ability Power is named internally, its not just for damage.
+             */
 
             // If the main mod's ability 1 cooldown debuff is NOT currently active, run all the code below this line
             if (ACM.ClassAbility1.JustPressed && player.FindBuffIndex(ModContent.BuffType<ApacchiisClassesMod.Buffs.ActiveCooldown1>()) == -1 && Main.myPlayer == player.whoAmI)
@@ -300,8 +300,6 @@ namespace ApacchiisCuratedClasses
                         vel.Normalize();
                         vel *= 2 * velMultiplier; // The lower this value, the lower the speed at which the projectile moves
 
-                        
-
                         // Spawn the teleporter projectile towards mouse position                   V      V                                                            V
                         var tp = Projectile.NewProjectile(player.Center.X, player.position.Y - 10, vel.X, vel.Y, ModContent.ProjectileType<Projectiles.Explorer.ExplorerTeleporter>(), 0, 0, player.whoAmI);
                         explorerThrownTeleporter = true; // We have now thrown our teleporter
@@ -309,9 +307,9 @@ namespace ApacchiisCuratedClasses
                     else // If we have already thrown out our teleporter
                     {
                         if (hasClassPath1) // And we have the class' Path 1
-                            player.AddBuff(ModContent.BuffType<ApacchiisClassesMod.Buffs.ActiveCooldown1>(), (int)(acmPlayer.baseCooldown * acmPlayer.cooldownReduction * 35)); // Add a 35 second cooldown
-                        else                                                                                                                                                    //       Otherwise
-                            player.AddBuff(ModContent.BuffType<ApacchiisClassesMod.Buffs.ActiveCooldown1>(), (int)(acmPlayer.baseCooldown * acmPlayer.cooldownReduction * 42)); // Add a 42 second cooldown
+                            AddAbilityCooldown(1, 35); // 1 is the ability number, 35 is the cooldown value in seconds
+                        else
+                            AddAbilityCooldown(1, 42); // 1 is the ability number, 42 is the cooldown value in seconds
 
                         player.Teleport(explorerTeleporterPos); // Set the player's position to a Vector2 variable thats updated every tick by the "ExplorerTeleporter" projectile.
                         explorerThrownTeleporter = false; // Resetting this variable will allow the player to throw out the teleporter again and re-use the ability
@@ -379,13 +377,10 @@ namespace ApacchiisCuratedClasses
                 #region Explorer
                 if (hasExplorer) // If our currently equipped class is Explorer
                 {
-                    // If the player has the class' second path, apply a 16s cooldown, otherwise, apply a 18s cooldown.
-                    // baseCooldown is 60 (1 second) by default, but can be changed through the main mod's config to decrease the overall cooldown abilities have
-                    // cooldownReduction is how much % of, well, cooldown reduction the players has, reducing the ability's cooldown
                     if (hasClassPath2)
-                        player.AddBuff(ModContent.BuffType<ApacchiisClassesMod.Buffs.ActiveCooldown2>(), (int)(acmPlayer.baseCooldown * acmPlayer.cooldownReduction * 16)); // <-- 16 is the cooldown in seconds
+                        AddAbilityCooldown(2, 16); // 2 is the ability number, 16 is the cooldown value in seconds
                     else
-                        player.AddBuff(ModContent.BuffType<ApacchiisClassesMod.Buffs.ActiveCooldown2>(), (int)(acmPlayer.baseCooldown * acmPlayer.cooldownReduction * 18)); // <-- 18 is the cooldown in seconds
+                        AddAbilityCooldown(2, 18); // 2 is the ability number, 18 is the cooldown value in seconds
 
                     explorerDodgeTimer = (int)(20 * acmPlayer.abilityDuration); // Set the timer to 20 ticks, multiplied by abilityDuration so it scales with it.
                     explorerDodgeHeal = false; // Setting a variable to false will allow us to mamke the player to heal only once when hit by an NPC/Projectile
@@ -449,6 +444,28 @@ namespace ApacchiisCuratedClasses
                 #endregion
             }
             base.ProcessTriggers(triggersSet);
+        }
+
+        // To easily apply ability cooldowns just call this (Examples in the Explorer class' abilities)
+        public void AddAbilityCooldown(int abilityNumber, int cooldownInSeconds)
+        {
+            /// <summary>
+            /// Applies class ability cooldowns.
+            /// Ability number is if the ability is either Ability 1 or Ability 2.
+            /// </summary>
+
+            // If the player has the class' second path, apply a 16s cooldown, otherwise, apply a 18s cooldown.
+            // baseCooldown is 60 (1 second) by default, but can be changed through the main mod's config to decrease the overall cooldown abilities have
+            // cooldownReduction is how much % of, well, cooldown reduction the players has, reducing the ability's cooldown
+
+            var acmPlayer = player.GetModPlayer<ApacchiisClassesMod.MyPlayer>();
+
+            if (abilityNumber == 1)
+                player.AddBuff(ModContent.BuffType<ApacchiisClassesMod.Buffs.ActiveCooldown1>(), (int)(acmPlayer.baseCooldown * acmPlayer.cooldownReduction * cooldownInSeconds));
+            if(abilityNumber == 2)
+                player.AddBuff(ModContent.BuffType<ApacchiisClassesMod.Buffs.ActiveCooldown2>(), (int)(acmPlayer.baseCooldown * acmPlayer.cooldownReduction * cooldownInSeconds));
+            if (abilityNumber > 2 || abilityNumber <= 0)
+                Main.NewText("ERROR: 'AddAbilityCooldown' abilityNumber parameter isn't either 1 nor 2, make it either 1 for Ability 1 or 2 for Ability 2");
         }
     }
 }
