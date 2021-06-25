@@ -26,7 +26,7 @@ namespace ApacchiisCuratedClasses.Classes.Defender
             else
             {
                 DisplayName.SetDefault("Class: Defender Lv.1");
-                Tooltip.SetDefault("[c/d33838:This class required the mod 'Expanded Sentries' to work]\n" +
+                Tooltip.SetDefault("[c/d33838:This class requires the mod 'Expanded Sentries' to work]\n" +
                                    "[c/d33838:You can download it through the Mod Browser]");
             }
         }

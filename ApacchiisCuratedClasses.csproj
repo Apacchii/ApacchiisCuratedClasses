@@ -20,6 +20,15 @@
     <None Remove="Classes\Defender\DefenderLv7.png" />
     <None Remove="Classes\Defender\DefenderLv8.png" />
     <None Remove="Classes\Defender\DefenderUltimate.png" />
+    <None Remove="Classes\Esper\EsperLv1.png" />
+    <None Remove="Classes\Esper\EsperLv2.png" />
+    <None Remove="Classes\Esper\EsperLv3.png" />
+    <None Remove="Classes\Esper\EsperLv4.png" />
+    <None Remove="Classes\Esper\EsperLv5.png" />
+    <None Remove="Classes\Esper\EsperLv6.png" />
+    <None Remove="Classes\Esper\EsperLv7.png" />
+    <None Remove="Classes\Esper\EsperLv8.png" />
+    <None Remove="Classes\Esper\EsperUltimate.png" />
     <None Remove="Classes\Explorer\ExplorerLv1.png" />
     <None Remove="Classes\Explorer\ExplorerLv2.png" />
     <None Remove="Classes\Explorer\ExplorerLv3.png" />

@@ -6,6 +6,7 @@ using ApacchiisClassesMod;
 using Microsoft.Xna.Framework;
 using System;
 using System.Reflection;
+using Microsoft.Xna.Framework.Audio;
 
 namespace ApacchiisCuratedClasses
 {
@@ -13,6 +14,7 @@ namespace ApacchiisCuratedClasses
 	{
         //For weak referenced cross-mod content 
         Mod ExpSentriesMod = ModLoader.GetMod("ExpandedSentries");
+        Mod EsperClassMod = ModLoader.GetMod("EsperClass");
 
         // Main mod Misc. Variables
         public bool hasEquipedClass;
@@ -41,6 +43,13 @@ namespace ApacchiisCuratedClasses
         int defenderPassiveBoost = 0; //How much defense is given after using A1 based on sentries detonated
         int defenderPoweredTimer = 0;
 
+        //Esper
+        public bool hasEsper;
+        int esperRepulsionTimer = 0;
+        bool isEsperHover;
+        SoundEffectInstance esperHoverStartSound;
+        SoundEffectInstance esperHoverLoopSound;
+
         public override void ResetEffects()
         {
             hasClassPath1 = false;
@@ -50,7 +59,7 @@ namespace ApacchiisCuratedClasses
             hasExplorer = false;
             hasSpellblade = false;
             hasDefender = false;
-
+            hasEsper = false;
             base.ResetEffects();
         }
 
@@ -96,6 +105,82 @@ namespace ApacchiisCuratedClasses
             }
             #endregion
 
+            #region Esper Ability Timers
+            if (EsperClassMod != null)
+            {
+                if (esperRepulsionTimer > 0)
+                {
+                    esperRepulsionTimer--;
+                    //if (!hasEsper)
+                    //	esperRepulsionTimer = 0;
+                    if (esperRepulsionTimer <= 0)
+                    {
+                        for (int i = 0; i < Main.projectile.Length; i++)
+                        {
+                            if (Main.projectile[i].active && Main.projectile[i].type == mod.ProjectileType("EsperRepel") && Main.projectile[i].owner == player.whoAmI)
+                            {
+                                Main.projectile[i].Kill();
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (isEsperHover)
+                {
+                    if ((esperHoverLoopSound == null || esperHoverLoopSound.State != SoundState.Playing)
+                    && (esperHoverStartSound == null || esperHoverStartSound.State != SoundState.Playing))
+                    {
+                        if (hasClassPath2)
+                            esperHoverLoopSound = Main.PlaySound(SoundLoader.customSoundType, -1, -1, mod.GetSoundSlot(SoundType.Custom, "Sounds/Esper/EsperHoverLoop2"));
+                        else
+                            esperHoverLoopSound = Main.PlaySound(SoundLoader.customSoundType, -1, -1, mod.GetSoundSlot(SoundType.Custom, "Sounds/Esper/EsperHoverLoop"));
+                    }
+                    if (player.mount.Active || player.pulley || player.HasBuff(EsperClassMod.BuffType("PsychedOut"))
+                    || player.grappling[0] != -1 /*|| !hasEsper*/)
+                    {
+                        isEsperHover = false;
+                        if (esperHoverLoopSound != null)
+                            esperHoverLoopSound.Stop(true);
+                        if (hasClassPath2)
+                            Main.PlaySound(SoundLoader.customSoundType, -1, -1, mod.GetSoundSlot(SoundType.Custom, "Sounds/Esper/EsperHoverEnd2"));
+                        else
+                            Main.PlaySound(SoundLoader.customSoundType, -1, -1, mod.GetSoundSlot(SoundType.Custom, "Sounds/Esper/EsperHoverEnd"));
+                    }
+                    else
+                    {
+                        player.gravity = 0;
+                        player.wingTime = 0;
+                        player.rocketTime = 0;
+                        player.jumpAgainCloud = false;
+                        player.jumpAgainSandstorm = false;
+                        player.jumpAgainBlizzard = false;
+                        player.jumpAgainFart = false;
+                        player.jumpAgainSail = false;
+                        player.jumpAgainUnicorn = false;
+                        player.canCarpet = false;
+                        player.carpetTime = 0;
+                        player.fallStart = (int)(player.position.Y / 16f);
+                        for (int i = -1; i < 2; i++)
+                        {
+                            if (i != 0)
+                            {
+                                int hoverDust = Dust.NewDust(player.Center, 0, 0, 272, 0f, 0f, 100, default(Color), 0.5f);
+                                Main.dust[hoverDust].noGravity = true;
+                                Main.dust[hoverDust].velocity.X = (2 + player.velocity.X) * i;
+                                Main.dust[hoverDust].velocity.Y = player.velocity.Y;
+                                Main.dust[hoverDust].noLight = true;
+                                Main.dust[hoverDust].position.X = player.Center.X;
+                                if (player.gravDir == 1f)
+                                    Main.dust[hoverDust].position.Y = player.position.Y + 44;
+                                else
+                                    Main.dust[hoverDust].position.Y = player.position.Y;
+                            }
+                        }
+                    }
+                }
+            }
+            #endregion
+
             base.PreUpdateBuffs();
         }
 
@@ -132,6 +217,16 @@ namespace ApacchiisCuratedClasses
                 player.buffImmune[BuffID.Electrified] = true;
             }
             #endregion
+
+            #region Esper Hover
+            if (EsperClassMod != null)
+            {
+                if (isEsperHover)
+                {
+                    player.buffImmune[BuffID.VortexDebuff] = true;
+                }
+            }
+            #endregion
             base.PostUpdateBuffs();
         }
 
@@ -162,6 +257,21 @@ namespace ApacchiisCuratedClasses
                 }
 
                 
+            }
+            #endregion
+
+            #region Esper Hover
+            if (EsperClassMod != null)
+            {
+                if (isEsperHover)
+                {
+                    if (hasClassPath2)
+                    {
+                        player.moveSpeed *= 1.5f;
+                        player.accRunSpeed *= 1.5f;
+                        player.maxRunSpeed *= 1.5f;
+                    }
+                }
             }
             #endregion
             base.PostUpdateEquips();
@@ -195,6 +305,86 @@ namespace ApacchiisCuratedClasses
                         if (turretCount > 0)
                             player.statDefense += turretCount;
                     }
+                }
+            }
+            #endregion
+
+            #region Esper Passive and Ability 2
+            if (EsperClassMod != null)
+            {
+                if (hasEsper)
+                {
+                    float regenBoost = 5f;
+                    if (!player.HasBuff(EsperClassMod.BuffType("PsychedOut")))
+                    {
+                        ModPlayer ECPlayer = player.GetModPlayer(EsperClassMod, "ECPlayer");
+                        Type ECPlayerType = ECPlayer.GetType();
+                        FieldInfo psychosis = ECPlayerType.GetField("psychosis", BindingFlags.Instance | BindingFlags.Public);
+                        float oldpsychosis = (float)psychosis.GetValue(ECPlayer);
+
+                        MethodInfo TotalPsychosis = ECPlayerType.GetMethod("TotalPsychosis", BindingFlags.Instance | BindingFlags.Public);
+                        int totalAmount = (int)TotalPsychosis.Invoke(ECPlayer, new object[] { });
+                        if (oldpsychosis > 0f)
+                            regenBoost = (oldpsychosis / totalAmount) * 5f;
+                        else
+                            regenBoost = 0;
+                    }
+                    player.lifeRegen += (int)regenBoost;
+                }
+
+                if (isEsperHover)
+                {
+                    // Psychosis Drain
+                    int drainAmount;
+                    if (hasClassPath2)
+                    {
+                        drainAmount = 1;
+                        player.armorEffectDrawOutlines = true;
+                    }
+                    else
+                        drainAmount = 2;
+                    ModPlayer ECPlayer = player.GetModPlayer(EsperClassMod, "ECPlayer");
+                    Type ECPlayerType = ECPlayer.GetType();
+                    MethodInfo PsychosisDrain = ECPlayerType.GetMethod("PsychosisDrain", BindingFlags.Instance | BindingFlags.Public);
+                    PsychosisDrain.Invoke(ECPlayer, new object[] { drainAmount, Missing.Value, Missing.Value });
+                    float hoverY = 0;
+                    if (player.controlUp || player.controlJump)
+                    {
+                        hoverY = -5f;
+                    }
+                    else if (player.controlDown)
+                    {
+                        hoverY = 5f;
+                        if (player.gravDir == 1f) //Can't move through platforms without a method like this
+                        {
+                            int x1 = (int)(player.position.X / 16f);
+                            int x2 = (int)((player.position.X + player.width) / 16f);
+                            int y1 = (int)((player.position.Y + player.height + 1) / 16f);
+                            int y2 = (int)((player.position.Y + player.height + 17) / 16f);
+                            if (x1 < 0)
+                                x1 = 0;
+                            if (x2 > Main.maxTilesX)
+                                x2 = Main.maxTilesX;
+                            if (y1 < 0)
+                                y1 = 0;
+                            if (y2 > Main.maxTilesY)
+                                y2 = Main.maxTilesY;
+                            for (int i = x1; i < x2; i++)
+                            {
+                                for (int j = y1; j < y2; j++)
+                                {
+                                    if (Main.tile[i, j].active() && !Main.tile[i, j].inActive() && Main.tileSolidTop[(int)Main.tile[i, j].type])
+                                    {
+                                        player.position.Y += 2;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (hasClassPath2)
+                        hoverY *= 2f;
+                    hoverY *= player.gravDir;
+                    player.velocity.Y = hoverY;
                 }
             }
             #endregion
@@ -262,6 +452,36 @@ namespace ApacchiisCuratedClasses
                     damage = (int)(damage * 1.15f); // Multiply the damage by 15%
                     CombatText.NewText(new Rectangle((int)player.position.X, (int)player.position.Y - 25, player.width, player.height), new Color(255, 255, 255), "!", true); // Small visual feedback that the passive was used
                 }                                                                                                                                                             // Displays a white "!" on top of the player
+            }
+            #endregion
+
+            #region Esper Passive
+            if (EsperClassMod != null)
+            {
+                if (hasEsper)
+                {
+                    Assembly esperClass = EsperClassMod.Code;
+                    Type ECProjectileType = esperClass.GetType("EsperClass.ECProjectile");
+                    if (crit && (proj.modProjectile?.GetType().IsSubclassOf(ECProjectileType) == true || proj.type == ProjectileID.FlyingKnife))
+                    {
+                        double damageBoost = 0.25f;
+                        if (!player.HasBuff(EsperClassMod.BuffType("PsychedOut")))
+                        {
+                            ModPlayer ECPlayer = player.GetModPlayer(EsperClassMod, "ECPlayer");
+                            Type ECPlayerType = ECPlayer.GetType();
+                            FieldInfo psychosis = ECPlayerType.GetField("psychosis", BindingFlags.Instance | BindingFlags.Public);
+                            float oldpsychosis = (float)psychosis.GetValue(ECPlayer);
+
+                            MethodInfo TotalPsychosis = ECPlayerType.GetMethod("TotalPsychosis", BindingFlags.Instance | BindingFlags.Public);
+                            int totalAmount = (int)TotalPsychosis.Invoke(ECPlayer, new object[] { });
+                            if (oldpsychosis > 0f)
+                                damageBoost = (0.25f / totalAmount) * (totalAmount - oldpsychosis);
+                            else
+                                damageBoost = 0.25f;
+                        }
+                        damage = (int)(damage * (damageBoost + 1));
+                    }
+                }
             }
             #endregion
             base.ModifyHitNPCWithProj(proj, target, ref damage, ref knockback, ref crit, ref hitDirection);
@@ -369,6 +589,27 @@ namespace ApacchiisCuratedClasses
                     }
                 }
                 #endregion
+
+                #region Esper
+                if (EsperClassMod != null)
+                {
+                    if (hasEsper)
+                    {
+                        player.AddBuff(ModContent.BuffType<ApacchiisClassesMod.Buffs.ActiveCooldown1>(), (int)(acmPlayer.baseCooldown * acmPlayer.cooldownReduction * 60));
+                        esperRepulsionTimer = (int)(900 * acmPlayer.abilityDuration);
+                        Main.PlaySound(SoundLoader.customSoundType, -1, -1, mod.GetSoundSlot(SoundType.Custom, "Sounds/Esper/EsperRepelStart"));
+                        for (int i = 0; i < Main.projectile.Length; i++)
+                        {
+                            if (Main.projectile[i].active && Main.projectile[i].type == mod.ProjectileType("EsperRepel") && Main.projectile[i].owner == player.whoAmI)
+                            {
+                                Main.projectile[i].Kill();
+                                break;
+                            }
+                        }
+                        Projectile.NewProjectile(player.Center, Vector2.Zero, mod.ProjectileType("EsperRepel"), 0, 16 * acmPlayer.abilityDamage, player.whoAmI);
+                    }
+                }
+                #endregion
             }
 
             // If the main mod's ability 2 cooldown debuff is NOT currently active, run all the code below this line
@@ -442,17 +683,57 @@ namespace ApacchiisCuratedClasses
                     }
                 }
                 #endregion
+
+                #region Esper
+                if (EsperClassMod != null)
+                {
+                    if (hasEsper)
+                    {
+                        if (!isEsperHover)
+                        {
+                            if (!player.mount.Active && !player.pulley && !player.HasBuff(EsperClassMod.BuffType("PsychedOut"))
+                            && player.grappling[0] == -1)
+                            {
+                                ModPlayer ECPlayer = player.GetModPlayer(EsperClassMod, "ECPlayer");
+                                Type ECPlayerType = ECPlayer.GetType();
+
+                                FieldInfo psychosis = ECPlayerType.GetField("psychosis", BindingFlags.Instance | BindingFlags.Public);
+                                float oldpsychosis = (float)psychosis.GetValue(ECPlayer);
+                                psychosis.SetValue(ECPlayer, oldpsychosis - 3f);
+                                isEsperHover = true;
+                                if (esperHoverStartSound != null)
+                                    esperHoverStartSound.Stop(true);
+                                esperHoverStartSound = Main.PlaySound(SoundLoader.customSoundType, -1, -1, mod.GetSoundSlot(SoundType.Custom, "Sounds/Esper/EsperHoverStart"));
+                                player.AddBuff(ModContent.BuffType<ApacchiisClassesMod.Buffs.ActiveCooldown2>(), 60);
+                            }
+                            else
+                                Main.PlaySound(SoundID.MenuClose);
+                        }
+                        else
+                        {
+                            isEsperHover = false;
+                            if (esperHoverLoopSound != null)
+                                esperHoverLoopSound.Stop(true);
+                            if (hasClassPath2)
+                                Main.PlaySound(SoundLoader.customSoundType, -1, -1, mod.GetSoundSlot(SoundType.Custom, "Sounds/Esper/EsperHoverEnd2"));
+                            else
+                                Main.PlaySound(SoundLoader.customSoundType, -1, -1, mod.GetSoundSlot(SoundType.Custom, "Sounds/Esper/EsperHoverEnd"));
+                        }
+                    }
+                }
+                #endregion
             }
             base.ProcessTriggers(triggersSet);
         }
 
         // To easily apply ability cooldowns just call this (Examples in the Explorer class' abilities)
+        /// <summary>
+        /// Applies class ability cooldowns.
+        /// Ability number is if the ability is either Ability 1 or Ability 2.
+        /// </summary>
         public void AddAbilityCooldown(int abilityNumber, int cooldownInSeconds)
         {
-            /// <summary>
-            /// Applies class ability cooldowns.
-            /// Ability number is if the ability is either Ability 1 or Ability 2.
-            /// </summary>
+            
 
             // If the player has the class' second path, apply a 16s cooldown, otherwise, apply a 18s cooldown.
             // baseCooldown is 60 (1 second) by default, but can be changed through the main mod's config to decrease the overall cooldown abilities have

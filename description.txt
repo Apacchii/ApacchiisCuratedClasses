@@ -3,7 +3,7 @@ Apacchii's Curated Classes is oficcialy supported by Apacchiis Classes Mod and s
 Apacchii's Curated Classes adds curated community made classes to the the mod called Apacchii's Classes Mod.
 Theres also some classes made by me, for the purpose of serving as code examples. More coming in the future.
 
-Currently adds: 3 Class.
+Currently adds: 4 Class.
 
 If you're interested in making a class yourself this mod is open source, so you can extract the mod's content and see for yourself how the classes are made.
 You then join the discord (mod's homepage) and ask me (Apacchii) if you can make a class.
